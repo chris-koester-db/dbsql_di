@@ -1,6 +1,6 @@
 -- Databricks notebook source
-CREATE CATALOG IF NOT EXISTS ${catalog};
-GRANT ALL PRIVILEGES ON CATALOG ${catalog} TO `account users`;
+-- CREATE CATALOG IF NOT EXISTS ${catalog};
+-- GRANT ALL PRIVILEGES ON CATALOG ${catalog} TO `account users`;
 USE CATALOG ${catalog};
 DROP DATABASE IF EXISTS ${wh_db} cascade;
 CREATE DATABASE ${wh_db};
