@@ -1,4 +1,4 @@
-# This is a Databricks asset bundle definition for dbsql_bundle.
+# This is a Databricks asset bundle definition for dbsql_di.
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
 bundle:
   name: tpcdi_bundle
