@@ -23,7 +23,7 @@ resources:
             - task_key: run_customermgmt_YES_NO
               outcome: "true"
           notebook_task:
-            notebook_path: /Workspace/Users/chris.koester@databricks.com/.bundle/dbsql_di/dev/files/src/CustomerMgmtRaw
+            notebook_path: ../src/CustomerMgmtRaw.sql
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
         - task_key: ingest_BatchDate
