@@ -4,16 +4,13 @@ resources:
       name: dbsql_di
       tasks:
         - task_key: dw_init
-          notification_settings: {}
           run_if: ALL_SUCCESS
           min_retry_interval_millis: 10000
           max_retries: 2
-          email_notifications: {}
           notebook_task:
             notebook_path: ../src/dw_init.sql
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
-          webhook_notifications: {}
         - task_key: run_customermgmt_YES_NO
           depends_on:
             - task_key: dw_init
@@ -35,11 +32,8 @@ resources:
               task_key: run_customermgmt_YES_NO
             - task_key: ingest_customermgmt_wh
           min_retry_interval_millis: 10000
-          webhook_notifications: {}
           run_if: AT_LEAST_ONE_SUCCESS
           max_retries: 2
-          email_notifications: {}
-          notification_settings: {}
           notebook_task:
             base_parameters:
               raw_schema: batchdate DATE NOT NULL COMMENT 'Batch date'
@@ -57,9 +51,7 @@ resources:
             - outcome: "false"
               task_key: run_customermgmt_YES_NO
             - task_key: ingest_customermgmt_wh
-          notification_settings: {}
           min_retry_interval_millis: 10000
-          webhook_notifications: {}
           notebook_task:
             warehouse_id: ${var.existing_warehouse_id}
             base_parameters:
@@ -71,7 +63,6 @@ resources:
               filename: Date.txt
             notebook_path: ../src/Ingest_Raw.sql
             source: WORKSPACE
-          email_notifications: {}
           max_retries: 2
           run_if: AT_LEAST_ONE_SUCCESS
         - task_key: ingest_DimTime
@@ -79,7 +70,6 @@ resources:
             - task_key: run_customermgmt_YES_NO
               outcome: "false"
             - task_key: ingest_customermgmt_wh
-          notification_settings: {}
           run_if: AT_LEAST_ONE_SUCCESS
           min_retry_interval_millis: 10000
           notebook_task:
@@ -94,8 +84,6 @@ resources:
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
           max_retries: 2
-          webhook_notifications: {}
-          email_notifications: {}
         - task_key: ingest_FinWire
           depends_on:
             - outcome: "false"
@@ -103,10 +91,7 @@ resources:
             - task_key: ingest_customermgmt_wh
           run_if: AT_LEAST_ONE_SUCCESS
           max_retries: 2
-          email_notifications: {}
-          webhook_notifications: {}
           min_retry_interval_millis: 10000
-          notification_settings: {}
           notebook_task:
             base_parameters:
               path: Batch1
@@ -126,7 +111,6 @@ resources:
               outcome: "false"
             - task_key: ingest_customermgmt_wh
           max_retries: 2
-          notification_settings: {}
           notebook_task:
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
@@ -138,21 +122,16 @@ resources:
               tgt_query: '*'
               tgt_db: '{{job.parameters.wh_db}}'
             notebook_path: ../src/Ingest_Raw.sql
-          webhook_notifications: {}
           run_if: AT_LEAST_ONE_SUCCESS
           min_retry_interval_millis: 10000
-          email_notifications: {}
         - task_key: ingest_TaxRate
           depends_on:
             - outcome: "false"
               task_key: run_customermgmt_YES_NO
             - task_key: ingest_customermgmt_wh
-          webhook_notifications: {}
           run_if: AT_LEAST_ONE_SUCCESS
           min_retry_interval_millis: 10000
           max_retries: 2
-          email_notifications: {}
-          notification_settings: {}
           notebook_task:
             base_parameters:
               filename: TaxRate.txt
@@ -182,9 +161,6 @@ resources:
             warehouse_id: ${var.existing_warehouse_id}
           max_retries: 2
           min_retry_interval_millis: 10000
-          notification_settings: {}
-          webhook_notifications: {}
-          email_notifications: {}
           run_if: AT_LEAST_ONE_SUCCESS
         - task_key: ingest_industry
           depends_on:
@@ -204,17 +180,11 @@ resources:
             notebook_path: ../src/Ingest_Raw.sql
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
-          email_notifications: {}
           max_retries: 2
-          webhook_notifications: {}
-          notification_settings: {}
         - task_key: Silver_DimBroker
           depends_on:
             - task_key: ingest_DimDate
-          notification_settings: {}
           min_retry_interval_millis: 10000
-          webhook_notifications: {}
-          email_notifications: {}
           notebook_task:
             warehouse_id: ${var.existing_warehouse_id}
             notebook_path: ../src/DimBroker.sql
@@ -230,36 +200,27 @@ resources:
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
           min_retry_interval_millis: 10000
-          notification_settings: {}
-          email_notifications: {}
           run_if: ALL_SUCCESS
           max_retries: 2
-          webhook_notifications: {}
         - task_key: Silver_DimAccount
           depends_on:
             - task_key: Silver_DimBroker
             - task_key: Stage_DimCustomerStg
           run_if: ALL_SUCCESS
           max_retries: 2
-          webhook_notifications: {}
           min_retry_interval_millis: 10000
-          notification_settings: {}
           notebook_task:
             notebook_path: ../src/DimAccount.sql
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
-          email_notifications: {}
         - task_key: Gold_FactCashBalances
           depends_on:
             - task_key: Silver_DimAccount
-          notification_settings: {}
           notebook_task:
             notebook_path: ../src/FactCashBalances.sql
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
-          webhook_notifications: {}
           min_retry_interval_millis: 10000
-          email_notifications: {}
           max_retries: 2
           run_if: ALL_SUCCESS
         - task_key: Silver_Prospect
@@ -267,26 +228,20 @@ resources:
             - task_key: Stage_DimCustomerStg
           run_if: ALL_SUCCESS
           max_retries: 2
-          notification_settings: {}
-          webhook_notifications: {}
           min_retry_interval_millis: 10000
           notebook_task:
             notebook_path: ../src/Prospect.sql
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
-          email_notifications: {}
         - task_key: Silver_DimCustomer
           depends_on:
             - task_key: ingest_TaxRate
             - task_key: Silver_Prospect
           min_retry_interval_millis: 10000
-          notification_settings: {}
-          webhook_notifications: {}
           notebook_task:
             notebook_path: ../src/DimCustomer.sql
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
-          email_notifications: {}
           run_if: ALL_SUCCESS
           max_retries: 2
         - task_key: Silver_DimCompany
@@ -295,11 +250,8 @@ resources:
             - task_key: ingest_StatusType
             - task_key: ingest_industry
           min_retry_interval_millis: 10000
-          notification_settings: {}
-          email_notifications: {}
           max_retries: 2
           run_if: ALL_SUCCESS
-          webhook_notifications: {}
           notebook_task:
             notebook_path: ../src/DimCompany.sql
             source: WORKSPACE
@@ -308,13 +260,10 @@ resources:
           depends_on:
             - task_key: Silver_DimCompany
           min_retry_interval_millis: 10000
-          email_notifications: {}
           notebook_task:
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
             notebook_path: ../src/DimSecurity.sql
-          webhook_notifications: {}
-          notification_settings: {}
           run_if: ALL_SUCCESS
           max_retries: 2
         - task_key: Gold_FactWatches
@@ -326,46 +275,34 @@ resources:
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
           min_retry_interval_millis: 10000
-          notification_settings: {}
-          webhook_notifications: {}
           max_retries: 2
           run_if: ALL_SUCCESS
-          email_notifications: {}
         - task_key: Silver_DimTrade
           depends_on:
             - task_key: ingest_TradeType
             - task_key: Silver_DimSecurity
             - task_key: Silver_DimAccount
-          notification_settings: {}
           notebook_task:
             notebook_path: ../src/DimTrade.sql
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
-          email_notifications: {}
-          webhook_notifications: {}
           run_if: ALL_SUCCESS
         - task_key: Silver_FactHoldings
           depends_on:
             - task_key: Silver_DimTrade
-          webhook_notifications: {}
           run_if: ALL_SUCCESS
           notebook_task:
             warehouse_id: ${var.existing_warehouse_id}
             notebook_path: ../src/FactHoldings.sql
             source: WORKSPACE
-          notification_settings: {}
-          email_notifications: {}
         - task_key: Silver_Financial
           depends_on:
             - task_key: Silver_DimCompany
-          notification_settings: {}
-          email_notifications: {}
           run_if: ALL_SUCCESS
           notebook_task:
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
             notebook_path: ../src/Financial.sql
-          webhook_notifications: {}
         - task_key: Gold_FactMarketHistory
           depends_on:
             - task_key: Silver_DimSecurity
@@ -374,12 +311,8 @@ resources:
             notebook_path: ../src/FactMarketHistory.sql
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
-          webhook_notifications: {}
-          email_notifications: {}
           run_if: ALL_SUCCESS
-          notification_settings: {}
       description: The ***run_customermgmt*** paramater accepts either ***YES*** or ***NO***.  If this XML file has already been ingested, the *dw_init* task does **NOT** remove it (since it is kind of a pain). Therefore, if you want to disable this task and just keep the existing historical customermgmt staging table then change to ***NO***.  It is set to ***YES*** by default.
-      webhook_notifications: {}
       parameters:
         - default: main
           name: catalog
@@ -391,5 +324,4 @@ resources:
           name: tpcdi_directory
         - default: dbsql_di
           name: wh_db
-      email_notifications: {}
       max_concurrent_runs: 1
