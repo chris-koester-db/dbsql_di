@@ -1,5 +1,5 @@
 -- Databricks notebook source
-INSERT INTO ${catalog}.${wh_db}.DimAccount (
+INSERT INTO ${catalog}.${schema}.DimAccount (
   accountid,
   sk_brokerid,
   sk_customerid,
@@ -22,7 +22,7 @@ WITH account AS (
     update_ts,
     1 batchid
   FROM
-    ${catalog}.${wh_db}_stage.CustomerMgmt c
+    ${catalog}.${schema}_stage.CustomerMgmt c
   WHERE
     ActionType NOT IN ('UPDCUST', 'INACT')
   UNION ALL
@@ -36,9 +36,9 @@ WITH account AS (
     TIMESTAMP(bd.batchdate) update_ts,
     a.batchid
   FROM
-    ${catalog}.${wh_db}_stage.v_accountincremental a
-    JOIN ${catalog}.${wh_db}.BatchDate bd ON a.batchid = bd.batchid
-    JOIN ${catalog}.${wh_db}.StatusType st ON a.CA_ST_ID = st.st_id
+    ${catalog}.${schema}_stage.v_accountincremental a
+    JOIN ${catalog}.${schema}.BatchDate bd ON a.batchid = bd.batchid
+    JOIN ${catalog}.${schema}.StatusType st ON a.CA_ST_ID = st.st_id
 ),
 account_final AS (
   SELECT
@@ -94,7 +94,7 @@ account_cust_updates AS (
     ) effectivedate,
     if(a.enddate > c.enddate, c.enddate, a.enddate) enddate
   FROM account_final a
-  FULL OUTER JOIN ${catalog}.${wh_db}_stage.DimCustomerStg c 
+  FULL OUTER JOIN ${catalog}.${schema}_stage.DimCustomerStg c 
     ON a.customerid = c.customerid
     AND c.enddate > a.effectivedate
     AND c.effectivedate < a.enddate
@@ -112,5 +112,5 @@ SELECT
   a.effectivedate,
   a.enddate
 FROM account_cust_updates a
-JOIN ${catalog}.${wh_db}.DimBroker b 
+JOIN ${catalog}.${schema}.DimBroker b 
   ON a.brokerid = b.brokerid

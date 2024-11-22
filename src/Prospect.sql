@@ -1,5 +1,5 @@
 -- Databricks notebook source
-INSERT INTO ${catalog}.${wh_db}.Prospect
+INSERT INTO ${catalog}.${schema}.Prospect
 SELECT 
   agencyid,
   bigint(date_format(recdate.batchdate, 'yyyyMMdd')) sk_recorddateid,
@@ -79,7 +79,7 @@ FROM (
       numbercreditcards,
       networth,
       min(batchid) batchid
-    FROM ${catalog}.${wh_db}_stage.v_Prospect p
+    FROM ${catalog}.${schema}_stage.v_Prospect p
     GROUP BY
       agencyid,
       lastname,
@@ -104,9 +104,9 @@ FROM (
       numbercreditcards,
       networth)
   QUALIFY ROW_NUMBER() OVER (PARTITION BY agencyid ORDER BY batchid DESC) = 1) p
-JOIN ${catalog}.${wh_db}.BatchDate recdate
+JOIN ${catalog}.${schema}.BatchDate recdate
   ON p.recordbatchid = recdate.batchid
-JOIN ${catalog}.${wh_db}.BatchDate origdate
+JOIN ${catalog}.${schema}.BatchDate origdate
   ON p.batchid = origdate.batchid
 LEFT JOIN (
   SELECT 
@@ -116,7 +116,7 @@ LEFT JOIN (
     addressline1,
     addressline2,
     postalcode
-  FROM ${catalog}.${wh_db}_stage.DimCustomerStg
+  FROM ${catalog}.${schema}_stage.DimCustomerStg
   WHERE iscurrent) c
   ON 
     upper(p.LastName) = upper(c.lastname)

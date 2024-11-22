@@ -1,5 +1,5 @@
 -- Databricks notebook source
-INSERT INTO ${catalog}.${wh_db}.DimTrade
+INSERT INTO ${catalog}.${schema}.DimTrade
 WITH TradeIncremental AS (
   SELECT
     min(cdc_flag) cdc_flag,
@@ -25,7 +25,7 @@ WITH TradeIncremental AS (
     ) current_record,
     min(t.batchid) batchid
   FROM
-    ${catalog}.${wh_db}_stage.v_TradeIncremental t
+    ${catalog}.${schema}_stage.v_TradeIncremental t
   group by
     t_id
 ),
@@ -43,7 +43,7 @@ TradeIncrementalHistory AS (
     th_dts ts,
     th_st_id status
   FROM
-    ${catalog}.${wh_db}_stage.v_TradeHistory
+    ${catalog}.${schema}_stage.v_TradeHistory
 ),
 Current_Trades as (
   SELECT
@@ -75,7 +75,7 @@ Trades_Final (
     t_tax tax,
     1 batchid
   FROM 
-    ${catalog}.${wh_db}_stage.v_Trade t
+    ${catalog}.${schema}_stage.v_Trade t
     JOIN 
       Current_Trades ct
       ON t.t_id = ct.tradeid
@@ -127,16 +127,16 @@ SELECT
   trade.tax,
   trade.batchid
 FROM Trades_Final trade
-JOIN ${catalog}.${wh_db}.StatusType status
+JOIN ${catalog}.${schema}.StatusType status
   ON status.st_id = trade.status
-JOIN ${catalog}.${wh_db}.TradeType tt
+JOIN ${catalog}.${schema}.TradeType tt
   ON tt.tt_id == trade.t_tt_id
-JOIN ${catalog}.${wh_db}.DimSecurity ds
+JOIN ${catalog}.${schema}.DimSecurity ds
   ON 
     ds.symbol = trade.t_s_symb
     AND date(create_ts) >= ds.effectivedate 
     AND date(create_ts) < ds.enddate
-JOIN ${catalog}.${wh_db}.DimAccount da
+JOIN ${catalog}.${schema}.DimAccount da
   ON 
     trade.t_ca_id = da.accountid 
     AND date(create_ts) >= da.effectivedate 

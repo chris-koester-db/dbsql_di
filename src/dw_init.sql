@@ -2,15 +2,15 @@
 CREATE CATALOG IF NOT EXISTS ${catalog};
 GRANT ALL PRIVILEGES ON CATALOG ${catalog} TO `account users`;
 USE CATALOG ${catalog};
-DROP DATABASE IF EXISTS ${wh_db} cascade;
-CREATE DATABASE ${wh_db};
-CREATE DATABASE IF NOT EXISTS ${wh_db}_stage;
-DROP TABLE IF EXISTS ${wh_db}_stage.dimcustomerstg;
-DROP TABLE IF EXISTS ${wh_db}_stage.finwire;
+DROP SCHEMA IF EXISTS ${schema} cascade;
+CREATE SCHEMA ${schema};
+CREATE SCHEMA IF NOT EXISTS ${schema}_stage;
+DROP TABLE IF EXISTS ${schema}_stage.dimcustomerstg;
+DROP TABLE IF EXISTS ${schema}_stage.finwire;
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.TaxRate (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.TaxRate (
   tx_id STRING NOT NULL COMMENT 'Tax rate code',
   tx_name STRING NOT NULL COMMENT 'Tax rate description',
   tx_rate FLOAT NOT NULL COMMENT 'Tax rate',
@@ -19,7 +19,7 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.TaxRate (
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.BatchDate (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.BatchDate (
   batchdate DATE NOT NULL COMMENT 'Batch date',
   batchid INT NOT NULL COMMENT 'Batch ID when this record was inserted',
   CONSTRAINT batchdate_pk PRIMARY KEY(batchdate)
@@ -27,7 +27,7 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.BatchDate (
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimDate (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.DimDate (
   sk_dateid BIGINT NOT NULL COMMENT 'Surrogate key for the date',
   datevalue DATE NOT NULL COMMENT 'The date stored appropriately for doing comparisons in the Data Warehouse',
   datedesc STRING NOT NULL COMMENT 'The date in full written form e.g. July 7 2004',
@@ -51,7 +51,7 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimDate (
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimTime (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.DimTime (
   sk_timeid BIGINT NOT NULL COMMENT 'Surrogate key for the time',
   timevalue STRING NOT NULL COMMENT 'The time stored appropriately for doing',
   hourid INT NOT NULL COMMENT 'Hour number as a number e.g. 01',
@@ -67,7 +67,7 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimTime (
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.StatusType (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.StatusType (
   st_id STRING NOT NULL COMMENT 'Status code',
   st_name STRING NOT NULL COMMENT 'Status description',
   CONSTRAINT statustype_pk PRIMARY KEY(st_name)
@@ -75,7 +75,7 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.StatusType (
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.industry (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.industry (
   in_id STRING NOT NULL COMMENT 'Industry code',
   in_name STRING NOT NULL COMMENT 'Industry description',
   in_sc_id STRING NOT NULL COMMENT 'Sector identifier',
@@ -84,7 +84,7 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.industry (
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.TradeType (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.TradeType (
   tt_id STRING NOT NULL COMMENT 'Trade type code',
   tt_name STRING NOT NULL COMMENT 'Trade type description',
   tt_is_sell INT NOT NULL COMMENT 'Flag indicating a sale',
@@ -94,14 +94,14 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.TradeType (
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}_stage.FinWire (
+CREATE OR REPLACE TABLE ${catalog}.${schema}_stage.FinWire (
   value STRING COMMENT 'Pre-parsed String Values of all FinWire files',
   rectype STRING COMMENT 'Indicates the type of table into which this record will eventually be parsed: CMP FIN or SEC'
 ) PARTITIONED BY (rectype);
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimBroker (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.DimBroker (
   sk_brokerid BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY COMMENT 'Surrogate key for broker',
   brokerid BIGINT NOT NULL COMMENT 'Natural key for broker',
   managerid BIGINT COMMENT 'Natural key for manager’s HR record',
@@ -120,7 +120,7 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimBroker (
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimCustomer (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.DimCustomer (
   sk_customerid BIGINT NOT NULL COMMENT 'Surrogate key for CustomerID',
   customerid BIGINT NOT NULL COMMENT 'Customer identifier',
   taxid STRING NOT NULL COMMENT 'Customer’s tax identifier',
@@ -159,7 +159,7 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimCustomer (
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}_stage.DimCustomerStg (
+CREATE OR REPLACE TABLE ${catalog}.${schema}_stage.DimCustomerStg (
   sk_customerid BIGINT GENERATED ALWAYS AS IDENTITY COMMENT 'Surrogate key for CustomerID',
   customerid BIGINT COMMENT 'Customer identifier',
   taxid STRING COMMENT 'Customer’s tax identifier',
@@ -191,7 +191,7 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}_stage.DimCustomerStg (
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimCompany (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.DimCompany (
   sk_companyid BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY COMMENT 'Surrogate key for CompanyID',
   companyid BIGINT NOT NULL COMMENT 'Company identifier (CIK number)',
   status STRING NOT NULL COMMENT 'Company status',
@@ -213,13 +213,13 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimCompany (
   effectivedate DATE NOT NULL COMMENT 'Beginning of date range when this record was the current record',
   enddate DATE NOT NULL COMMENT 'Ending of date range when this record was the current record. A record that is not expired will use the date 9999-12-31.',
   CONSTRAINT dimcompany_pk PRIMARY KEY(sk_companyid),
-  CONSTRAINT dimcompany_status_fk FOREIGN KEY (status) REFERENCES ${catalog}.${wh_db}.StatusType(st_name),
-  CONSTRAINT dimcompany_industry_fk FOREIGN KEY (industry) REFERENCES ${catalog}.${wh_db}.Industry(in_name)
+  CONSTRAINT dimcompany_status_fk FOREIGN KEY (status) REFERENCES ${catalog}.${schema}.StatusType(st_name),
+  CONSTRAINT dimcompany_industry_fk FOREIGN KEY (industry) REFERENCES ${catalog}.${schema}.Industry(in_name)
 );
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimCustomer (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.DimCustomer (
   sk_customerid BIGINT NOT NULL COMMENT 'Surrogate key for CustomerID',
   customerid BIGINT NOT NULL COMMENT 'Customer identifier',
   taxid STRING NOT NULL COMMENT 'Customer’s tax identifier',
@@ -258,7 +258,7 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimCustomer (
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimAccount (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.DimAccount (
   sk_accountid BIGINT GENERATED ALWAYS AS IDENTITY NOT NULL COMMENT 'Surrogate key for AccountID',
   accountid BIGINT NOT NULL COMMENT 'Customer account identifier',
   sk_brokerid BIGINT NOT NULL COMMENT 'Surrogate key of managing broker',
@@ -271,13 +271,13 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimAccount (
   effectivedate DATE NOT NULL COMMENT 'Beginning of date range when this record was the current record',
   enddate DATE NOT NULL COMMENT 'Ending of date range when this record was the current record. A record that is not expired will use the date 9999-12-31.',
   CONSTRAINT dimaccount_pk PRIMARY KEY(sk_accountid),
-  CONSTRAINT dimaccount_customer_fk FOREIGN KEY (sk_customerid) REFERENCES ${catalog}.${wh_db}.DimCustomer(sk_customerid),
-  CONSTRAINT dimaccount_broker_fk FOREIGN KEY (sk_brokerid) REFERENCES ${catalog}.${wh_db}.DimBroker(sk_brokerid)
+  CONSTRAINT dimaccount_customer_fk FOREIGN KEY (sk_customerid) REFERENCES ${catalog}.${schema}.DimCustomer(sk_customerid),
+  CONSTRAINT dimaccount_broker_fk FOREIGN KEY (sk_brokerid) REFERENCES ${catalog}.${schema}.DimBroker(sk_brokerid)
 );
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimSecurity (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.DimSecurity (
   sk_securityid BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY COMMENT 'Surrogate key for Symbol',
   symbol STRING NOT NULL COMMENT 'Identifies security on ticker',
   issue STRING NOT NULL COMMENT 'Issue type',
@@ -294,13 +294,13 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimSecurity (
   effectivedate DATE NOT NULL COMMENT 'Beginning of date range when this record was the current record',
   enddate DATE NOT NULL COMMENT 'Ending of date range when this record was the current record. A record that is not expired will use the date 9999-12-31.',
   CONSTRAINT dimsecurity_pk PRIMARY KEY(sk_securityid),
-  CONSTRAINT dimsecurity_status_fk FOREIGN KEY (status) REFERENCES ${catalog}.${wh_db}.StatusType(st_name),
-  CONSTRAINT dimsecurity_company_fk FOREIGN KEY (sk_companyid) REFERENCES ${catalog}.${wh_db}.DimCompany(sk_companyid)
+  CONSTRAINT dimsecurity_status_fk FOREIGN KEY (status) REFERENCES ${catalog}.${schema}.StatusType(st_name),
+  CONSTRAINT dimsecurity_company_fk FOREIGN KEY (sk_companyid) REFERENCES ${catalog}.${schema}.DimCompany(sk_companyid)
 );
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.Prospect (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.Prospect (
   agencyid STRING NOT NULL COMMENT 'Unique identifier from agency',
   sk_recorddateid BIGINT NOT NULL COMMENT 'Last date this prospect appeared in input',
   sk_updatedateid BIGINT NOT NULL COMMENT 'Latest change date for this prospect',
@@ -333,7 +333,7 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.Prospect (
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.Financial (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.Financial (
   sk_companyid BIGINT NOT NULL COMMENT 'Company SK.',
   fi_year INT NOT NULL COMMENT 'Year of the quarter end.',
   fi_qtr INT NOT NULL COMMENT 'Quarter number that the financial information is for: valid values 1, 2, 3, 4.',
@@ -349,12 +349,12 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.Financial (
   fi_out_basic BIGINT NOT NULL COMMENT 'Average number of shares outstanding (basic).',
   fi_out_dilut BIGINT NOT NULL COMMENT 'Average number of shares outstanding (diluted).',
   CONSTRAINT financial_pk PRIMARY KEY(sk_companyid, fi_year, fi_qtr),
-  CONSTRAINT financial_company_fk FOREIGN KEY (sk_companyid) REFERENCES ${catalog}.${wh_db}.DimCompany(sk_companyid)
+  CONSTRAINT financial_company_fk FOREIGN KEY (sk_companyid) REFERENCES ${catalog}.${schema}.DimCompany(sk_companyid)
 );
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimTrade (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.DimTrade (
   tradeid INT NOT NULL COMMENT 'Trade identifier',
   sk_brokerid BIGINT NOT NULL COMMENT 'Surrogate key for BrokerID',
   sk_createdateid BIGINT NOT NULL COMMENT 'Surrogate key for date created',
@@ -377,20 +377,20 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.DimTrade (
   tax DOUBLE COMMENT 'Amount of tax due on this trade',
   batchid INT NOT NULL COMMENT 'Batch ID when this record was inserted',
   CONSTRAINT dimtrade_pk PRIMARY KEY(tradeid),
-  CONSTRAINT dimtrade_security_fk FOREIGN KEY (sk_securityid) REFERENCES ${catalog}.${wh_db}.DimSecurity(sk_securityid),
-  CONSTRAINT dimtrade_company_fk FOREIGN KEY (sk_companyid) REFERENCES ${catalog}.${wh_db}.DimCompany(sk_companyid),
-  CONSTRAINT dimtrade_broker_fk FOREIGN KEY (sk_brokerid) REFERENCES ${catalog}.${wh_db}.DimBroker(sk_brokerid),
-  CONSTRAINT dimtrade_account_fk FOREIGN KEY (sk_accountid) REFERENCES ${catalog}.${wh_db}.DimAccount(sk_accountid),
-  CONSTRAINT dimtrade_customer_fk FOREIGN KEY (sk_customerid) REFERENCES ${catalog}.${wh_db}.DimCustomer(sk_customerid),
-  CONSTRAINT dimtrade_createdate_fk FOREIGN KEY (sk_createdateid) REFERENCES ${catalog}.${wh_db}.DimDate(sk_dateid),
-  CONSTRAINT dimtrade_closedate_fk FOREIGN KEY (sk_closedateid) REFERENCES ${catalog}.${wh_db}.DimDate(sk_dateid),
-  CONSTRAINT dimtrade_createtime_fk FOREIGN KEY (sk_createtimeid) REFERENCES ${catalog}.${wh_db}.DimTime(sk_timeid),
-  CONSTRAINT dimtrade_closetime_fk FOREIGN KEY (sk_closetimeid) REFERENCES ${catalog}.${wh_db}.DimTime(sk_timeid)
+  CONSTRAINT dimtrade_security_fk FOREIGN KEY (sk_securityid) REFERENCES ${catalog}.${schema}.DimSecurity(sk_securityid),
+  CONSTRAINT dimtrade_company_fk FOREIGN KEY (sk_companyid) REFERENCES ${catalog}.${schema}.DimCompany(sk_companyid),
+  CONSTRAINT dimtrade_broker_fk FOREIGN KEY (sk_brokerid) REFERENCES ${catalog}.${schema}.DimBroker(sk_brokerid),
+  CONSTRAINT dimtrade_account_fk FOREIGN KEY (sk_accountid) REFERENCES ${catalog}.${schema}.DimAccount(sk_accountid),
+  CONSTRAINT dimtrade_customer_fk FOREIGN KEY (sk_customerid) REFERENCES ${catalog}.${schema}.DimCustomer(sk_customerid),
+  CONSTRAINT dimtrade_createdate_fk FOREIGN KEY (sk_createdateid) REFERENCES ${catalog}.${schema}.DimDate(sk_dateid),
+  CONSTRAINT dimtrade_closedate_fk FOREIGN KEY (sk_closedateid) REFERENCES ${catalog}.${schema}.DimDate(sk_dateid),
+  CONSTRAINT dimtrade_createtime_fk FOREIGN KEY (sk_createtimeid) REFERENCES ${catalog}.${schema}.DimTime(sk_timeid),
+  CONSTRAINT dimtrade_closetime_fk FOREIGN KEY (sk_closetimeid) REFERENCES ${catalog}.${schema}.DimTime(sk_timeid)
 );
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.FactHoldings (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.FactHoldings (
   tradeid INT NOT NULL COMMENT 'Key for Orignial Trade Indentifier',
   currenttradeid INT NOT NULL COMMENT 'Key for the current trade',
   sk_customerid BIGINT NOT NULL COMMENT 'Surrogate key for Customer Identifier',
@@ -403,33 +403,33 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.FactHoldings (
   currentholding INT NOT NULL COMMENT 'Quantity of a security held after the current trade.',
   batchid INT NOT NULL COMMENT 'Batch ID when this record was inserted',
   CONSTRAINT factholdings_pk PRIMARY KEY(currenttradeid),
-  CONSTRAINT factholdings_security_fk FOREIGN KEY (sk_securityid) REFERENCES ${catalog}.${wh_db}.DimSecurity(sk_securityid),
-  CONSTRAINT factholdings_company_fk FOREIGN KEY (sk_companyid) REFERENCES ${catalog}.${wh_db}.DimCompany(sk_companyid),
-  CONSTRAINT factholdings_trade_fk FOREIGN KEY (tradeid) REFERENCES ${catalog}.${wh_db}.DimTrade(tradeid),
-  CONSTRAINT factholdings_currenttrade_fk FOREIGN KEY (currenttradeid) REFERENCES ${catalog}.${wh_db}.DimTrade(tradeid),
-  CONSTRAINT factholdings_account_fk FOREIGN KEY (sk_accountid) REFERENCES ${catalog}.${wh_db}.DimAccount(sk_accountid),
-  CONSTRAINT factholdings_customer_fk FOREIGN KEY (sk_customerid) REFERENCES ${catalog}.${wh_db}.DimCustomer(sk_customerid),
-  CONSTRAINT factholdings_date_fk FOREIGN KEY (sk_dateid) REFERENCES ${catalog}.${wh_db}.DimDate(sk_dateid),
-  CONSTRAINT factholdings_time_fk FOREIGN KEY (sk_timeid) REFERENCES ${catalog}.${wh_db}.DimTime(sk_timeid)
+  CONSTRAINT factholdings_security_fk FOREIGN KEY (sk_securityid) REFERENCES ${catalog}.${schema}.DimSecurity(sk_securityid),
+  CONSTRAINT factholdings_company_fk FOREIGN KEY (sk_companyid) REFERENCES ${catalog}.${schema}.DimCompany(sk_companyid),
+  CONSTRAINT factholdings_trade_fk FOREIGN KEY (tradeid) REFERENCES ${catalog}.${schema}.DimTrade(tradeid),
+  CONSTRAINT factholdings_currenttrade_fk FOREIGN KEY (currenttradeid) REFERENCES ${catalog}.${schema}.DimTrade(tradeid),
+  CONSTRAINT factholdings_account_fk FOREIGN KEY (sk_accountid) REFERENCES ${catalog}.${schema}.DimAccount(sk_accountid),
+  CONSTRAINT factholdings_customer_fk FOREIGN KEY (sk_customerid) REFERENCES ${catalog}.${schema}.DimCustomer(sk_customerid),
+  CONSTRAINT factholdings_date_fk FOREIGN KEY (sk_dateid) REFERENCES ${catalog}.${schema}.DimDate(sk_dateid),
+  CONSTRAINT factholdings_time_fk FOREIGN KEY (sk_timeid) REFERENCES ${catalog}.${schema}.DimTime(sk_timeid)
 )
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.FactCashBalances (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.FactCashBalances (
   sk_customerid BIGINT NOT NULL COMMENT 'Surrogate key for CustomerID',
   sk_accountid BIGINT NOT NULL COMMENT 'Surrogate key for AccountID',
   sk_dateid BIGINT NOT NULL COMMENT 'Surrogate key for the date',
   cash DOUBLE NOT NULL COMMENT 'Cash balance for the account after applying',
   batchid INT NOT NULL COMMENT 'Batch ID when this record was inserted',
   CONSTRAINT cashbalances_pk PRIMARY KEY(sk_customerid, sk_accountid, sk_dateid),
-  CONSTRAINT cashbalances_customer_fk FOREIGN KEY (sk_customerid) REFERENCES ${catalog}.${wh_db}.DimCustomer(sk_customerid),
-  CONSTRAINT cashbalances_account_fk FOREIGN KEY (sk_accountid) REFERENCES ${catalog}.${wh_db}.DimAccount(sk_accountid),
-  CONSTRAINT cashbalances_date_fk FOREIGN KEY (sk_dateid) REFERENCES ${catalog}.${wh_db}.DimDate(sk_dateid)
+  CONSTRAINT cashbalances_customer_fk FOREIGN KEY (sk_customerid) REFERENCES ${catalog}.${schema}.DimCustomer(sk_customerid),
+  CONSTRAINT cashbalances_account_fk FOREIGN KEY (sk_accountid) REFERENCES ${catalog}.${schema}.DimAccount(sk_accountid),
+  CONSTRAINT cashbalances_date_fk FOREIGN KEY (sk_dateid) REFERENCES ${catalog}.${schema}.DimDate(sk_dateid)
 )
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.FactMarketHistory (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.FactMarketHistory (
   sk_securityid BIGINT NOT NULL COMMENT 'Surrogate key for SecurityID',
   sk_companyid BIGINT NOT NULL COMMENT 'Surrogate key for CompanyID',
   sk_dateid BIGINT NOT NULL COMMENT 'Surrogate key for the date',
@@ -445,29 +445,29 @@ CREATE OR REPLACE TABLE ${catalog}.${wh_db}.FactMarketHistory (
   volume INT NOT NULL COMMENT 'Trading volume of the security on this day',
   batchid INT NOT NULL COMMENT 'Batch ID when this record was inserted',
   CONSTRAINT fmh_pk PRIMARY KEY(sk_securityid, sk_dateid),
-  CONSTRAINT fmh_security_fk FOREIGN KEY (sk_securityid) REFERENCES ${catalog}.${wh_db}.DimSecurity(sk_securityid),
-  CONSTRAINT fmh_company_fk FOREIGN KEY (sk_companyid) REFERENCES ${catalog}.${wh_db}.DimCompany(sk_companyid),
-  CONSTRAINT fmh_date_fk FOREIGN KEY (sk_dateid) REFERENCES ${catalog}.${wh_db}.DimDate(sk_dateid)
+  CONSTRAINT fmh_security_fk FOREIGN KEY (sk_securityid) REFERENCES ${catalog}.${schema}.DimSecurity(sk_securityid),
+  CONSTRAINT fmh_company_fk FOREIGN KEY (sk_companyid) REFERENCES ${catalog}.${schema}.DimCompany(sk_companyid),
+  CONSTRAINT fmh_date_fk FOREIGN KEY (sk_dateid) REFERENCES ${catalog}.${schema}.DimDate(sk_dateid)
 )
 
 -- COMMAND ----------
 
-CREATE OR REPLACE TABLE ${catalog}.${wh_db}.FactWatches (
+CREATE OR REPLACE TABLE ${catalog}.${schema}.FactWatches (
   sk_customerid BIGINT NOT NULL COMMENT 'Customer associated with watch list',
   sk_securityid BIGINT NOT NULL COMMENT 'Security listed on watch list',
   sk_dateid_dateplaced BIGINT NOT NULL COMMENT 'Date the watch list item was added',
   sk_dateid_dateremoved BIGINT COMMENT 'Date the watch list item was removed',
   batchid INT NOT NULL COMMENT 'Batch ID when this record was inserted',
   CONSTRAINT factwatches_pk PRIMARY KEY(sk_customerid, sk_securityid),
-  CONSTRAINT factwatches_customer_fk FOREIGN KEY (sk_customerid) REFERENCES ${catalog}.${wh_db}.DimCustomer(sk_customerid),
-  CONSTRAINT factwatches_security_fk FOREIGN KEY (sk_securityid) REFERENCES ${catalog}.${wh_db}.DimSecurity(sk_securityid),
-  CONSTRAINT factwatches_dateplaced_fk FOREIGN KEY (sk_dateid_dateplaced) REFERENCES ${catalog}.${wh_db}.DimDate(sk_dateid),
-  CONSTRAINT factwatches_dateremoved_fk FOREIGN KEY (sk_dateid_dateremoved) REFERENCES ${catalog}.${wh_db}.DimDate(sk_dateid)
+  CONSTRAINT factwatches_customer_fk FOREIGN KEY (sk_customerid) REFERENCES ${catalog}.${schema}.DimCustomer(sk_customerid),
+  CONSTRAINT factwatches_security_fk FOREIGN KEY (sk_securityid) REFERENCES ${catalog}.${schema}.DimSecurity(sk_securityid),
+  CONSTRAINT factwatches_dateplaced_fk FOREIGN KEY (sk_dateid_dateplaced) REFERENCES ${catalog}.${schema}.DimDate(sk_dateid),
+  CONSTRAINT factwatches_dateremoved_fk FOREIGN KEY (sk_dateid_dateremoved) REFERENCES ${catalog}.${schema}.DimDate(sk_dateid)
 )
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_TradeIncremental AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_TradeIncremental AS
 SELECT
   *,
   cast(
@@ -489,7 +489,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_Trade AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_Trade AS
 SELECT
   *,
   1 batchid
@@ -506,7 +506,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_TradeHistory AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_TradeHistory AS
 SELECT
   *
 FROM 
@@ -522,7 +522,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_CustomerIncremental AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_CustomerIncremental AS
 SELECT
   * except(cdc_flag, cdc_dsn),
   cast(
@@ -544,7 +544,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_HR AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_HR AS
 SELECT
   *
 FROM 
@@ -560,7 +560,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_AccountIncremental AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_AccountIncremental AS
 SELECT
   * except(cdc_flag, cdc_dsn),
   cast(
@@ -582,7 +582,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_CashTransactionHistory AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_CashTransactionHistory AS
 SELECT
   *,
   1 batchid
@@ -599,7 +599,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_CashTransactionIncremental AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_CashTransactionIncremental AS
 SELECT
   * except(cdc_flag, cdc_dsn),
   cast(
@@ -621,7 +621,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_HoldingHistory AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_HoldingHistory AS
 SELECT
   *,
   1 batchid
@@ -638,7 +638,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_HoldingIncremental AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_HoldingIncremental AS
 SELECT
   * except(cdc_flag, cdc_dsn),
   cast(
@@ -660,7 +660,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_dailymarkethistorical AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_dailymarkethistorical AS
 SELECT
   *,
   1 batchid
@@ -677,7 +677,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_DailyMarketIncremental AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_DailyMarketIncremental AS
 SELECT
   * except(cdc_flag, cdc_dsn),
   cast(
@@ -699,7 +699,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_WatchHistory AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_WatchHistory AS
 SELECT
   *,
   1 batchid
@@ -716,7 +716,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_WatchIncremental AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_WatchIncremental AS
 SELECT
   * except(cdc_flag, cdc_dsn),
   cast(
@@ -738,7 +738,7 @@ FROM
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW ${catalog}.${wh_db}_stage.v_Prospect AS
+CREATE OR REPLACE VIEW ${catalog}.${schema}_stage.v_Prospect AS
 SELECT
   *,
   cast(

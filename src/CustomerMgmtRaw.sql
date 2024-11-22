@@ -1,5 +1,5 @@
 -- Databricks notebook source
-CREATE TABLE IF NOT EXISTS ${catalog}.${wh_db}_stage.CustomerMgmt PARTITIONED BY (ActionType) AS 
+CREATE TABLE IF NOT EXISTS ${catalog}.${schema}_stage.CustomerMgmt PARTITIONED BY (ActionType) AS 
 SELECT 
   cast(Customer._C_ID as BIGINT) customerid, 
   cast(Customer.Account._CA_ID as BIGINT) accountid,

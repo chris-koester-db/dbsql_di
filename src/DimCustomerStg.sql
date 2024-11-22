@@ -1,6 +1,6 @@
 -- Databricks notebook source
 INSERT INTO
-  ${catalog}.${wh_db}_stage.DimCustomerStg (
+  ${catalog}.${schema}_stage.DimCustomerStg (
     customerid,
     taxid,
     status,
@@ -55,7 +55,7 @@ WITH CustomerHistory as (
     1 batchid,
     update_ts
   FROM
-    ${catalog}.${wh_db}_stage.CustomerMgmt c
+    ${catalog}.${schema}_stage.CustomerMgmt c
   WHERE
     ActionType in ('NEW', 'INACT', 'UPDCUST')
 ),
@@ -110,9 +110,9 @@ CustomerIncremental as (
     c.batchid,
     timestamp(bd.batchdate) update_ts
   FROM
-    ${catalog}.${wh_db}_stage.v_CustomerIncremental c
-    JOIN ${catalog}.${wh_db}.BatchDate bd ON c.batchid = bd.batchid
-    JOIN ${catalog}.${wh_db}.StatusType s ON c.status = s.st_id
+    ${catalog}.${schema}_stage.v_CustomerIncremental c
+    JOIN ${catalog}.${schema}.BatchDate bd ON c.batchid = bd.batchid
+    JOIN ${catalog}.${schema}.StatusType s ON c.status = s.st_id
 ),
 CustomerFinal AS (
   SELECT

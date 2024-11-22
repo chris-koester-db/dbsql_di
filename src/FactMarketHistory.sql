@@ -1,5 +1,5 @@
 -- Databricks notebook source
-INSERT INTO ${catalog}.${wh_db}.FactMarketHistory
+INSERT INTO ${catalog}.${schema}.FactMarketHistory
 WITH DailyMarket as (
   SELECT
     dm.*,
@@ -13,9 +13,9 @@ WITH DailyMarket as (
     ) fiftytwoweekhigh
   FROM
     (
-      SELECT * FROM ${catalog}.${wh_db}_stage.v_dailymarkethistorical
+      SELECT * FROM ${catalog}.${schema}_stage.v_dailymarkethistorical
       UNION ALL
-      SELECT * FROM ${catalog}.${wh_db}_stage.v_DailyMarketIncremental
+      SELECT * FROM ${catalog}.${schema}_stage.v_DailyMarketIncremental
     ) dm
 ),
 CompanyFinancialsStg as (
@@ -23,8 +23,8 @@ CompanyFinancialsStg as (
     sk_companyid,
     fi_qtr_start_date,
     sum(fi_basic_eps) OVER (PARTITION BY companyid ORDER BY fi_qtr_start_date ROWS BETWEEN 4 PRECEDING AND CURRENT ROW) - fi_basic_eps sum_fi_basic_eps
-  FROM ${catalog}.${wh_db}.Financial
-  JOIN ${catalog}.${wh_db}.DimCompany
+  FROM ${catalog}.${schema}.Financial
+  JOIN ${catalog}.${schema}.DimCompany
     USING (sk_companyid)
 )
 SELECT 
@@ -43,7 +43,7 @@ SELECT
   dm_vol volume,
   fmh.batchid
 FROM DailyMarket fmh
-JOIN ${catalog}.${wh_db}.DimSecurity s 
+JOIN ${catalog}.${schema}.DimSecurity s 
   ON 
     s.symbol = fmh.dm_s_symb
     AND fmh.dm_date >= s.effectivedate 

@@ -1,5 +1,5 @@
 -- Databricks notebook source
-INSERT INTO ${catalog}.${wh_db}.DimCompany (
+INSERT INTO ${catalog}.${schema}.DimCompany (
   companyid, 
   status, 
   name, 
@@ -37,7 +37,7 @@ WITH cmp as (
     trim(substring(value, 324, 24)) AS Country,
     trim(substring(value, 348, 46)) AS CEOname,
     trim(substring(value, 394, 150)) AS Description
-  FROM ${catalog}.${wh_db}_stage.FinWire
+  FROM ${catalog}.${schema}_stage.FinWire
   WHERE rectype = 'CMP'
 )
 SELECT 
@@ -73,7 +73,7 @@ FROM (
       lead(date(pts)) OVER (PARTITION BY cik ORDER BY pts),
       cast('9999-12-31' as date)) enddate
   FROM cmp
-  JOIN ${catalog}.${wh_db}.StatusType st ON cmp.status = st.st_id
-  JOIN ${catalog}.${wh_db}.Industry ind ON cmp.industryid = ind.in_id
+  JOIN ${catalog}.${schema}.StatusType st ON cmp.status = st.st_id
+  JOIN ${catalog}.${schema}.Industry ind ON cmp.industryid = ind.in_id
 )
 where effectivedate < enddate;
