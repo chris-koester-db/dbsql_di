@@ -316,12 +316,12 @@ resources:
       parameters:
         - default: main
           name: catalog
-        - default: YES
-          name: run_customermgmt
-        - default: "10"
-          name: scale_factor
-        - default: /Volumes/tpcdi/tpcdi_raw_data/tpcdi_volume/
-          name: tpcdi_directory
         - default: dbsql_di
           name: schema
+        - default: YES
+          name: run_customermgmt
+        - default: /Volumes/tpcdi/tpcdi_raw_data/tpcdi_volume/
+          name: tpcdi_directory
+        - default: "10"
+          name: scale_factor
       max_concurrent_runs: 1
