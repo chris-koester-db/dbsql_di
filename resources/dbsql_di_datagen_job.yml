@@ -1,0 +1,17 @@
+resources:
+  jobs:
+    dbsql_di_datagen:
+      name: dbsql_di_datagen
+      description: Generates TPC-DI data for the dbsql_di job
+      tasks:
+        - task_key: generate_data
+          notebook_task:
+            notebook_path: ../tools/data_generator.py
+            source: WORKSPACE
+          existing_cluster_id: ${var.existing_cluster_id}
+          timeout_seconds: 900
+      queue:
+        enabled: false
+      parameters:
+        - name: catalog
+          default: main

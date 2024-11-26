@@ -1,5 +1,5 @@
 -- Databricks notebook source
-INSERT INTO ${catalog}.${wh_db}.DimSecurity (
+INSERT INTO ${catalog}.${schema}.DimSecurity (
   symbol,
   issue,
   status,
@@ -28,7 +28,7 @@ WITH SEC as (
     to_date(substring(value, 141, 8), 'yyyyMMdd') AS firsttradeonexchange,
     cast(substring(value, 149, 12) AS DOUBLE) AS Dividend,
     trim(substring(value, 161, 60)) AS conameorcik
-  FROM ${catalog}.${wh_db}_stage.FinWire
+  FROM ${catalog}.${schema}_stage.FinWire
   WHERE rectype = 'SEC'
 ),
 dc as (
@@ -37,14 +37,14 @@ dc as (
     name conameorcik,
     EffectiveDate,
     EndDate
-  FROM ${catalog}.${wh_db}.DimCompany
+  FROM ${catalog}.${schema}.DimCompany
   UNION ALL
   SELECT 
     sk_companyid,
     cast(companyid as string) conameorcik,
     EffectiveDate,
     EndDate
-  FROM ${catalog}.${wh_db}.DimCompany
+  FROM ${catalog}.${schema}.DimCompany
 ),
 SEC_prep AS (
   SELECT 
@@ -58,7 +58,7 @@ SEC_prep AS (
       date('9999-12-31')
     ) enddate
   FROM SEC
-  JOIN ${catalog}.${wh_db}.StatusType s 
+  JOIN ${catalog}.${schema}.StatusType s 
     ON s.ST_ID = SEC.status
 ),
 SEC_final AS (

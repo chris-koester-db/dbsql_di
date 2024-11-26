@@ -23,7 +23,7 @@ resources:
             - task_key: run_customermgmt_YES_NO
               outcome: "true"
           notebook_task:
-            notebook_path: /Workspace/Users/chris.koester@databricks.com/.bundle/tpcdi_bundle/dev/files/src/CustomerMgmtRaw
+            notebook_path: ../src/CustomerMgmtRaw.sql
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
         - task_key: ingest_BatchDate
@@ -41,7 +41,7 @@ resources:
               path: Batch*
               tgt_query: '*, cast(substring(_metadata.file_path FROM (position(''/Batch'', _metadata.file_path) + 6) FOR 1) as int) batchid'
               add_tgt_schema: ', batchid INT NOT NULL COMMENT ''Batch ID when this record was inserted'''
-              tgt_db: '{{job.parameters.wh_db}}'
+              tgt_db: '{{job.parameters.schema}}'
               filename: BatchDate.txt
             notebook_path: ../src/Ingest_Raw.sql
             source: WORKSPACE
@@ -59,7 +59,7 @@ resources:
               table: DimDate
               path: Batch1
               tgt_query: '*'
-              tgt_db: '{{job.parameters.wh_db}}'
+              tgt_db: '{{job.parameters.schema}}'
               filename: Date.txt
             notebook_path: ../src/Ingest_Raw.sql
             source: WORKSPACE
@@ -75,7 +75,7 @@ resources:
           notebook_task:
             base_parameters:
               tgt_query: '*'
-              tgt_db: '{{job.parameters.wh_db}}'
+              tgt_db: '{{job.parameters.schema}}'
               filename: Time.txt
               raw_schema: sk_timeid BIGINT NOT NULL COMMENT 'Surrogate key for the time', timevalue STRING NOT NULL COMMENT 'The time stored appropriately for doing', hourid INT NOT NULL COMMENT 'Hour number as a number e.g. 01', hourdesc STRING NOT NULL COMMENT 'Hour number as text e.g. 01', minuteid INT NOT NULL COMMENT 'Minute as a number e.g. 23', minutedesc STRING NOT NULL COMMENT 'Minute as text e.g. 01:23', secondid INT NOT NULL COMMENT 'Second as a number e.g. 45', seconddesc STRING NOT NULL COMMENT 'Second as text e.g. 01:23:45', markethoursflag BOOLEAN COMMENT 'Indicates a time during market hours', officehoursflag BOOLEAN COMMENT 'Indicates a time during office hours'
               table: DimTime
@@ -97,7 +97,7 @@ resources:
               path: Batch1
               tgt_query: '*, substring(value, 16, 3) rectype'
               add_tgt_schema: ', rectype STRING COMMENT ''Indicates the type of table into which this record will eventually be parsed: CMP FIN or SEC'''
-              tgt_db: '{{job.parameters.wh_db}}_stage'
+              tgt_db: '{{job.parameters.schema}}_stage'
               filename: FINWIRE[0-9][0-9][0-9][0-9]Q[1-4]
               part: PARTITIONED BY (rectype)
               raw_schema: value STRING COMMENT 'Pre-parsed String Values of all FinWire files'
@@ -120,7 +120,7 @@ resources:
               table: StatusType
               path: Batch1
               tgt_query: '*'
-              tgt_db: '{{job.parameters.wh_db}}'
+              tgt_db: '{{job.parameters.schema}}'
             notebook_path: ../src/Ingest_Raw.sql
           run_if: AT_LEAST_ONE_SUCCESS
           min_retry_interval_millis: 10000
@@ -139,7 +139,7 @@ resources:
               table: TaxRate
               path: Batch1
               tgt_query: '*'
-              tgt_db: '{{job.parameters.wh_db}}'
+              tgt_db: '{{job.parameters.schema}}'
             notebook_path: ../src/Ingest_Raw.sql
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
@@ -150,7 +150,7 @@ resources:
             - task_key: ingest_customermgmt_wh
           notebook_task:
             base_parameters:
-              tgt_db: '{{job.parameters.wh_db}}'
+              tgt_db: '{{job.parameters.schema}}'
               filename: TradeType.txt
               raw_schema: tt_id STRING NOT NULL COMMENT 'Trade type code', tt_name STRING NOT NULL COMMENT 'Trade type description', tt_is_sell INT NOT NULL COMMENT 'Flag indicating a sale', tt_is_mrkt INT NOT NULL COMMENT 'Flag indicating a market order'
               table: TradeType
@@ -176,7 +176,7 @@ resources:
               table: industry
               path: Batch1
               tgt_query: '*'
-              tgt_db: '{{job.parameters.wh_db}}'
+              tgt_db: '{{job.parameters.schema}}'
             notebook_path: ../src/Ingest_Raw.sql
             source: WORKSPACE
             warehouse_id: ${var.existing_warehouse_id}
@@ -316,12 +316,12 @@ resources:
       parameters:
         - default: main
           name: catalog
+        - default: dbsql_di
+          name: schema
         - default: YES
           name: run_customermgmt
-        - default: "10"
-          name: scale_factor
         - default: /Volumes/tpcdi/tpcdi_raw_data/tpcdi_volume/
           name: tpcdi_directory
-        - default: dbsql_di
-          name: wh_db
+        - default: "10"
+          name: scale_factor
       max_concurrent_runs: 1

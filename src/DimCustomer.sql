@@ -1,5 +1,5 @@
 -- Databricks notebook source
-INSERT INTO ${catalog}.${wh_db}.DimCustomer 
+INSERT INTO ${catalog}.${schema}.DimCustomer 
 SELECT 
   sk_customerid,
   c.customerid,
@@ -34,12 +34,12 @@ SELECT
   c.batchid,
   c.effectivedate,
   c.enddate
-FROM ${catalog}.${wh_db}_stage.DimCustomerStg c
-JOIN ${catalog}.${wh_db}.TaxRate r_lcl 
+FROM ${catalog}.${schema}_stage.DimCustomerStg c
+JOIN ${catalog}.${schema}.TaxRate r_lcl 
   ON c.LCL_TX_ID = r_lcl.TX_ID
-JOIN ${catalog}.${wh_db}.TaxRate r_nat 
+JOIN ${catalog}.${schema}.TaxRate r_nat 
   ON c.NAT_TX_ID = r_nat.TX_ID
-LEFT JOIN ${catalog}.${wh_db}.Prospect p 
+LEFT JOIN ${catalog}.${schema}.Prospect p 
   on upper(p.lastname) = upper(c.lastname)
   and upper(p.firstname) = upper(c.firstname)
   and upper(p.addressline1) = upper(c.addressline1)

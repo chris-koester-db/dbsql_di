@@ -1,9 +1,9 @@
 -- Databricks notebook source
-INSERT INTO ${catalog}.${wh_db}.FactCashBalances
+INSERT INTO ${catalog}.${schema}.FactCashBalances
 with CashTransactions as (
-  SELECT * FROM ${catalog}.${wh_db}_stage.v_CashTransactionHistory
+  SELECT * FROM ${catalog}.${schema}_stage.v_CashTransactionHistory
   UNION ALL
-  SELECT * FROM ${catalog}.${wh_db}_stage.v_CashTransactionIncremental
+  SELECT * FROM ${catalog}.${schema}_stage.v_CashTransactionIncremental
 ),
 CashTransactionsAgg as (
   SELECT 
@@ -24,7 +24,7 @@ SELECT
   sum(account_daily_total) OVER (partition by c.accountid order by c.datevalue) cash,
   c.batchid
 FROM CashTransactionsAgg c 
-JOIN ${catalog}.${wh_db}.DimAccount a 
+JOIN ${catalog}.${schema}.DimAccount a 
   ON 
     c.accountid = a.accountid
     AND c.datevalue >= a.effectivedate 
